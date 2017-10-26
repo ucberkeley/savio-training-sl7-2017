@@ -6,11 +6,11 @@
 
 We'll spend about 30 minutes going through this material as a demonstration. I encourage you to login to your account and try out the various examples yourself as we go through them. The remainder of the scheduled time will be open time for you to work on your installations with each other and with help from us.
 
-Some of this material is based on the extensive Savio documention we have prepared and continue to prepare, available at [http://research-it.berkeley.edu/services/high-performance-computing/user-guide](http://research-it.berkeley.edu/services/high-performance-computing/user-guide). In particular we have some detailed installation instructions at [http://research-it.berkeley.edu/services/high-performance-computing/accessing-and-installing-software](http://research-it.berkeley.edu/services/high-performance-computing/accessing-and-installing-software).
+Some of this material is based on the extensive Savio documention we have prepared and continue to prepare, available at [http://research-it.berkeley.edu/services/high-performance-computing/user-guide](http://research-it.berkeley.edu/services/high-performance-computing/user-guide). In particular we have some detailed installation instructions under the "Installing your own" tab at [http://research-it.berkeley.edu/services/high-performance-computing/accessing-and-installing-software](http://research-it.berkeley.edu/services/high-performance-computing/accessing-and-installing-software).
 
 The materials for this tutorial are available using git at [https://github.com/ucberkeley/savio-training-sl7-2017](https://github.com/ucberkeley/savio-training-sl7-2017) or simply as a [zip file](https://github.com/ucberkeley/savio-training-sl7-2017/archive/master.zip).
 
-These *install.html* and *install_slides.html* files were created from *install.md* by running `make all` (see *Makefile* for details on how that creates the html files).
+These *install.html* and *install_slides.html* files were created from *install.md* by running 'make' within the repository directory (see *Makefile* for details on how that creates the html files).
 
 Please see this [zip file](https://github.com/ucberkeley/savio-training-intro-2017/archive/master.zip) for materials from our introductory training on September 19, including accessing Savio, data transfer, and basic job submission.
 
@@ -51,21 +51,23 @@ A common installation approach is the GNU build system (Autotools), which involv
 
 We recommend you set up a directory structure that mimics how we install software on Savio. We'll assume you are installing in a group directory, but you could equally well do this in your home directory or even on scratch (albeit with the danger the installation might be purged).
 
-`
+If you haven't already set up the directory structure for your group, here are the steps:
+
+```
 cd /global/home/groups/my_group
 mkdir sl7
-cd sl7
-mkdir sources
-mkdir modules
-mkdir scripts
-mkdir modfiles
+mkdir sl7/sources
+mkdir sl7/modules
+mkdir sl7/scripts
+mkdir sl7/modfiles
+chmod -R g+rwX sl7
 ```
 
 However, you can manage your directories as you like; the above is just a suggestion.
 
 # Third-party software installation - examples
 
-Here's are a couple examples of installing a piece of software in your home directory
+Here are a couple examples of installing a piece of software in your home directory.
 
 ### yaml package example
 
@@ -92,6 +94,10 @@ make install | tee ../install-${V}.log
 ```
 
 To save the information on how you installed the software, we recommend you save the code above. In this case you would save it in `sl7/scripts/yaml/install.sh`.
+
+# Third-party software installation - examples
+
+Here are a couple examples of installing a piece of software in your home directory.
 
 ### geos package example
 
@@ -146,10 +152,9 @@ For executables (binaries), you may need this:
 ```
 # needed in the geos example to install the rgeos R package
 export PATH=${INSTALLDIR}/bin:${PATH}
-echo ${PATH}
 ```
 
- Linux only looks in certain directories for executables.
+This is because Linux only looks in certain directories for executables.
 
 For header files, you generally need to do something specific for the subsequent software you are installing. If you see comments about *.h* files not being found, you need to make sure the compiler can find the *include* directory that contains those files.
 
@@ -163,22 +168,33 @@ module load pip
 PYPKG=pyyaml
 V=0.1.7
 PKGDIR=/global/home/groups/my_group/sl7/yaml/${V}
+
+# This fails:
 pip install --user ${PYPKG}
 ls .local/lib/python2.7/site-packages
 # needs to find header files
+
+# This fails too:
 pip install --user --ignore-installed --global-option=build_ext  \
     --global-option="-I/${PKGDIR}/include" ${PYPKG}
 # no -lyaml (needs to find library) files 
 # in this case setting LD_LIBRARY_PATH does not work for some reason
+
+# This succeeds:
 pip install --user --ignore-installed --global-option=build_ext \
     --global-option="-I/${PKGDIR}/include" \
     --global-option="-L/${PKGDIR}/lib" ${PYPKG}
 ```
 
+[[[Krishna: can we say anything about why the explicit setting of -L is needed and simply setting LD_LIBRARY_PATH does not work?]]]
+
+# Installing Python and R packages 
+
 Here's an R example:
 
 ```
-# in this case, setting LD_LIBRARY_PATH works (and we also need to have set PATH)
+# in this case, setting LD_LIBRARY_PATH works
+# (and we also need to set PATH)
 V=3.6.2
 PKGDIR=/global/home/groups/my_group/sl7/geos/${V}
 export LD_LIBRARY_PATH=${PKGDIR}/lib:${LD_LIBRARY_PATH}
@@ -188,37 +204,30 @@ Rscript -e "install.packages('rgeos', repos = 'http://cran.cnr.berkeley.edu', \
 lib = Sys.getenv('R_LIBS_USER'))"
 ```
 
-You may sometimes need to use the `configure.args` or `configure.vars` argument to provide information on the location of `include` and `lib` directories of dependencies. The Savio help email can provide support for complicated installations.
+You may sometimes need to use the `configure.args` or `configure.vars` arguments to `install.packages()` to provide information on the location of `include` and `lib` directories of dependencies. The Savio help email can provide support for complicated installations.
 
 # Installation for an entire group
 
-[check with Krishna - if a user puts materials in a group directory, is changing the group or changing the permissions needed?]
-
-If you change the UNIX permissions of the installed files to allow your group members access, then they should be able to use the software too.
-
-For example, you would need to do something like this:
-
+Optionally if you'd like your group members to have write access to the directories for the software you installed, you would do this:
 
 ```
 PKG=rgeos
 cd /global/home/groups/my_group/sl7
-chgrp -R my_group {sources,modfiles,modules,scripts}/${PKG}
 chmod -R g+rwX {sources,modfiles,modules,scripts}/${PKG}
 ```
 
-This will allow reading by group members for all files in the directory and execution for the group members on the executables in `bin` (as well as access through to the subdirectories using the +X at the higher-level directories).
 
 # Setting up a module for your software
 
 
-You may also want to set up your own module that allows you to easily set your environment so that the software is accessible for you (and possibly others in your group). To do this you need to do the following.
+You may also want to set up a module for the software you just installed. This allows you and your group members to easily set your environment so that the software is accessible for you. To do this you need to do the following.
 
 First we'll need a directory in which to store our module files:
 
 ```
 V=3.6.2
 MYMODULEPATH=/global/home/groups/my_group/sl7/modfiles
-mkdir -p ${MYMODULEPATH}/geos/${V}
+mkdir -p ${MYMODULEPATH}/geos
 export MODULEPATH=${MODULEPATH}:${MYMODULEPATH}  # good to put this in your .bashrc
 ```
 
@@ -228,13 +237,11 @@ Now we create a module file for the version (or one each for multiple versions) 
 cp example-modfile ${MYMODULEPATH}/geos/3.6.2
 ```
 
-Or see some of the Savio system-level modules in `/global/software/sl-6.x86_64/modfiles/langs`. 
+Or see some of the Savio system-level modules in `/global/software/sl-7.x86_64/modfiles`. 
 
 ```
-cat /global/software/sl-6.x86_64/modfiles/langs/python/2.7.8
+cat /global/software/sl-7.x86_64/modfiles/apps/ml/tensorflow/1.0.0-py36
 ```
-
-There is also some high-level information on modules in [http://research-it.berkeley.edu/services/high-performance-computing/accessing-and-installing-software#Chaining](http://research-it.berkeley.edu/services/high-performance-computing/accessing-and-installing-software#Chaining).
 
 
 # How to get additional help
