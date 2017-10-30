@@ -36,11 +36,17 @@
 </ul>
 <h1 id="whats-new-with-sl7-on-savio">What's new with SL7 on Savio?</h1>
 <ul>
+<li>Updated Intel and GNU (gcc) compilers, and updated openMPI</li>
 <li>All Python and R packages will be available as soon as you load the main <code>python</code> or <code>r</code> modules</li>
 <li>Updated Python (Python 3.6) and R (R 3.4.x) will be available.</li>
-<li>An extensive set of machine learning/deep learning and related packages will be available: tensorflow, h2o, mxnet, theano, superlearner</li>
+<li>Python installation now uses Anaconda distribution instead of being build from source.</li>
+<li>An extensive set of machine learning/deep learning and related packages available: tensorflow, h2o, mxnet, theano, superlearner.</li>
 </ul>
-<p>You can ssh to <code>sl7.brc.berkeley.edu</code> and run <code>module avail</code> to see the list. Do note that we'll update the versions in many cases before final release.</p>
+<p>You can ssh to <code>sl7.brc.berkeley.edu</code> and run <code>module avail</code> to see the list. Do note that we'll update the versions in some cases before final release.</p>
+<p>Please see the <a href="http://research-it.berkeley.edu/services/high-performance-computing/sl7-upgrade">SL7 migration page</a> for more details.</p>
+<h1 id="modules">Modules</h1>
+<p>Recall that very little software is available except via the modules system.</p>
+<p>Simple tools like gnuplot, newer versions of git, cmake, gcc, etc... are all available in the software module farm, not loaded by default in user environments.</p>
 <h1 id="third-party-software-installation---overview">Third-party software installation - overview</h1>
 <p>In general, third-party software will provide installation instructions on a webpage, Github README, or install file inside the package source code.</p>
 <p>The key for installing on Savio is making sure everything gets installed in your own home, project, or scratch directory and making sure you have the packages on which the software depends on also installed by you or loaded from the Savio modules.</p>

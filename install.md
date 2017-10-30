@@ -29,11 +29,23 @@ This training session will cover the following topics:
 
 # What's new with SL7 on Savio?
 
+ - Updated Intel and GNU (gcc) compilers, and updated openMPI
  - All Python and R packages will be available as soon as you load the main `python` or `r` modules
  - Updated Python (Python 3.6) and R (R 3.4.x) will be available.
- - An extensive set of machine learning/deep learning and related packages will be available: tensorflow, h2o, mxnet, theano, superlearner
+ - Python installation now uses Anaconda distribution instead of being build from source.
+ - An extensive set of machine learning/deep learning and related packages available: tensorflow, h2o, mxnet, theano, superlearner.
 
-You can ssh to `sl7.brc.berkeley.edu` and run `module avail` to see the list. Do note that we'll update the versions in many cases before final release. 
+You can ssh to `sl7.brc.berkeley.edu` and run `module avail` to see the list. Do note that we'll update the versions in some cases before final release.
+
+Please see the [SL7 migration page](http://research-it.berkeley.edu/services/high-performance-computing/sl7-upgrade) for more details.
+
+
+# Modules
+
+Recall that very little software is available except via the modules system.
+
+Simple tools like gnuplot, newer versions of git, cmake, gcc, etc... are all available in the software module farm, not loaded by default in user environments. 
+
 
 # Third-party software installation - overview
 
