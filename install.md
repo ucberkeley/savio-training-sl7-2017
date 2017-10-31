@@ -81,14 +81,18 @@ However, you can manage your directories as you like; the above is just a sugges
 
 Here are a couple examples of installing a piece of software in your home directory.
 
+I'm actually going to do the installations under SL6 because the demos were developed for SL6 and don't readily port over to SL7 for reasons that are not germane to the topic of demonstrating installation. In general what we'll do here is how you'll install things on SL7 as well. 
+
 ### yaml package example
 
 ```
 # install yaml, an optional dependency for Python yaml package
 PKG=yaml
 V=0.1.7
+my_group=co_stat
+os=sl6
 
-DIR=/global/home/groups/my_group/sl7
+DIR=/global/home/groups/${my_group}/${os}
 SRCDIR=${DIR}/sources/${PKG}/${V}
 INSTALLDIR=${DIR}/modules/${PKG}/${V}
 
@@ -105,7 +109,7 @@ make | tee ../make-${V}.log
 make install | tee ../install-${V}.log
 ```
 
-To save the information on how you installed the software, we recommend you save the code above. In this case you would save it in `sl7/scripts/yaml/install.sh`.
+To save the information on how you installed the software, we recommend you save the code above. In this case you would save it in `${os}/scripts/yaml/install.sh`.
 
 # Third-party software installation - examples
 
@@ -117,7 +121,7 @@ Here are a couple examples of installing a piece of software in your home direct
 PKG=geos
 V=3.6.2
 
-DIR=/global/home/groups/my_group/sl7
+DIR=/global/home/groups/${my_group}/${os}
 SRCDIR=${DIR}/sources/${PKG}/${V}
 INSTALLDIR=${DIR}/modules/${PKG}/${V}
 
@@ -147,50 +151,32 @@ cmake -DCMAKE_INSTALL_PREFIX=${INSTALLDIR} . | tee ../cmake.log
 To use the software you just installed as a dependency of other software you want to install (e.g., Python or R packages), you often need to make Linux aware of the location of the following in your newly-installed software:
 
   - library files (for other software to link against)
-  - executables (for other software to call), and 
   - header files (for other software to compile against).
 
-For library files, you may need this:
+If a library file can't be found, you'll likely see an error message such as *`libfoo.so` not found*.
+In this case make sure make sure the compiler can find the *lib* or *lib64* directory that contains the file(s).
 
-```
-# needed in the geos example to install the rgeos R package
-export LD_LIBRARY_PATH=${INSTALLDIR}/lib:${LD_LIBRARY_PATH}
-```
-
-This is because Linux only looks in certain directories for the location of .so library files. A clue that you may need this is seeing an error message such as `libfoo.so` not found.
-
-For executables (binaries), you may need this: 
-
-```
-# needed in the geos example to install the rgeos R package
-export PATH=${INSTALLDIR}/bin:${PATH}
-```
-
-This is because Linux only looks in certain directories for executables.
-
-For header files, you generally need to do something specific for the subsequent software you are installing. If you see comments about *.h* files not being found, you need to make sure the compiler can find the *include* directory that contains those files.
+If a header file can't be found, you'll likely see comments about *.h* files not being found. In this case make sure make sure the compiler can find the *include* directory that contains the file(s).
 
 # Installing Python and R packages 
 
-Here's a Python example:
+Note: in the following we'll install in our user directory; it would take some additional wrangling to install in a location available to other group members. 
 
 ```
-module load python/2.7.8
-module load pip
+module load python/2.7.8 pip
 PYPKG=pyyaml
 V=0.1.7
-PKGDIR=/global/home/groups/my_group/sl7/yaml/${V}
+PKGDIR=/global/home/groups/${my_group}/${os}/modules/yaml/${V}
 
 # This fails:
 pip install --user ${PYPKG}
 ls .local/lib/python2.7/site-packages
-# needs to find header files
+# can't find yaml.h file
 
 # This fails too:
 pip install --user --ignore-installed --global-option=build_ext  \
     --global-option="-I/${PKGDIR}/include" ${PYPKG}
-# no -lyaml (needs to find library) files 
-# in this case setting LD_LIBRARY_PATH does not work for some reason
+# can't find libyaml.so file
 
 # This succeeds:
 pip install --user --ignore-installed --global-option=build_ext \
@@ -198,25 +184,41 @@ pip install --user --ignore-installed --global-option=build_ext \
     --global-option="-L/${PKGDIR}/lib" ${PYPKG}
 ```
 
-[[[Krishna: can we say anything about why the explicit setting of -L is needed and simply setting LD_LIBRARY_PATH does not work?]]]
+Sidenote: pyyaml is already installed for Python on SL7 (hence the reason this demo wouldn't work on SL7).
 
 # Installing Python and R packages 
 
-Here's an R example:
+Here's an R example. In this case compilation would go ok, except R needs access to a geos-related binary for configuration and to the libgeos library file when it test runs the installed rgeos package at the end of the process. 
 
 ```
-# in this case, setting LD_LIBRARY_PATH works
-# (and we also need to set PATH)
 V=3.6.2
-PKGDIR=/global/home/groups/my_group/sl7/geos/${V}
-export LD_LIBRARY_PATH=${PKGDIR}/lib:${LD_LIBRARY_PATH}
+PKGDIR=/global/home/groups/${my_group}/${os}/modules/geos/${V}
+module load r/3.4.2
+
+Rscript -e "install.packages('rgeos', repos = 'http://cran.cnr.berkeley.edu')"
+# that fails as it can't find geos-config,
+# an executable installed as part of geos
+
 export PATH=${PKGDIR}/bin:${PATH}
-module load r
-Rscript -e "install.packages('rgeos', repos = 'http://cran.cnr.berkeley.edu', \
-lib = Sys.getenv('R_LIBS_USER'))"
+Rscript -e "install.packages('rgeos', repos = 'http://cran.cnr.berkeley.edu')"
+# that installs (almost), but fails to run when tested because
+# libgoes-3.6.2.so can't be found
+
+export LD_LIBRARY_PATH=${INSTALLDIR}/lib:${LD_LIBRARY_PATH}
+Rscript -e "install.packages('rgeos', repos = 'http://cran.cnr.berkeley.edu')"
 ```
 
-You may sometimes need to use the `configure.args` or `configure.vars` arguments to `install.packages()` to provide information on the location of `include` and `lib` directories of dependencies. The Savio help email can provide support for complicated installations.
+You may sometimes need to use the `configure.args` or `configure.vars` arguments to `install.packages()` to provide information on the location of `include` and `lib` directories of dependencies (similar to what we did for pyyaml. 
+
+# Accessing executables and libraries at run-time
+
+The issues we saw installing rgeos were not really compilation issues, but rather issues in finding binaries and libraries at run time.
+
+For binaries, Linux only looks in certain directories for executables. These directories are in your PATH variable. So in the previous example we added the directory containing geos-config to our PATH.
+
+For library (.so) files Linux only looks in certain directories for the location of .so library files. To tell Linux to look in additional directories, you can add them to your LD_LIBRARY_PATH variable.
+
+In the rgeos case, anytime we want to use the rgeos package, we need to make sure LD_LIBRARY_PATH is set so that rgeos can find `libgoes-3.6.2.so`.
 
 # Installation for an entire group
 
@@ -224,7 +226,7 @@ Optionally if you'd like your group members to have write access to the director
 
 ```
 PKG=rgeos
-cd /global/home/groups/my_group/sl7
+cd /global/home/groups/${my_group}/${os}
 chmod -R g+rwX {sources,modfiles,modules,scripts}/${PKG}
 ```
 
@@ -238,7 +240,7 @@ First we'll need a directory in which to store our module files:
 
 ```
 V=3.6.2
-MYMODULEPATH=/global/home/groups/my_group/sl7/modfiles
+MYMODULEPATH=/global/home/groups/${my_group}/${os}/modfiles
 mkdir -p ${MYMODULEPATH}/geos
 export MODULEPATH=${MODULEPATH}:${MYMODULEPATH}  # good to put this in your .bashrc
 ```
