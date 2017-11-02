@@ -248,7 +248,7 @@ export MODULEPATH=${MODULEPATH}:${MYMODULEPATH}  # good to put this in your .bas
 Now we create a module file for the version (or one each for multiple versions) of the software we have installed. E.g., for our geos installation we would edit  `${MYMODULEPATH}/geos/3.6.2` based on looking at examples of other module files. An example module file for our geos example is *example-modulefile*.
 
 ```
-cp example-modfile ${MYMODULEPATH}/geos/3.6.2
+cp example-modulefile ${MYMODULEPATH}/geos/3.6.2
 ```
 
 Or see some of the Savio system-level modules in `/global/software/sl-7.x86_64/modfiles`. 

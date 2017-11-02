@@ -219,7 +219,7 @@ MYMODULEPATH=/global/home/groups/${my_group}/${os}/modfiles
 mkdir -p ${MYMODULEPATH}/geos
 export MODULEPATH=${MODULEPATH}:${MYMODULEPATH}  # good to put this in your .bashrc</code></pre>
 <p>Now we create a module file for the version (or one each for multiple versions) of the software we have installed. E.g., for our geos installation we would edit <code>${MYMODULEPATH}/geos/3.6.2</code> based on looking at examples of other module files. An example module file for our geos example is <em>example-modulefile</em>.</p>
-<pre><code>cp example-modfile ${MYMODULEPATH}/geos/3.6.2</code></pre>
+<pre><code>cp example-modulefile ${MYMODULEPATH}/geos/3.6.2</code></pre>
 <p>Or see some of the Savio system-level modules in <code>/global/software/sl-7.x86_64/modfiles</code>.</p>
 <pre><code>cat /global/software/sl-7.x86_64/modfiles/apps/ml/tensorflow/1.0.0-py36</code></pre>
 </div>
